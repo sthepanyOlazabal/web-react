@@ -24,9 +24,25 @@ function MenuItem(props: IMenuItemProps) {
 
   return (
     <>
-      {!!props.rutas.ruta ? (
-        <Link to={props.rutas.ruta} onClick={handleClick}>
-          <ListItem button>
+      {props.rutas.titulo !== "Login" ? (
+        !!props.rutas.ruta ? (
+          <Link to={props.rutas.ruta} onClick={handleClick}>
+            <ListItem button>
+              {!!props.rutas.icono && (
+                <ListItemIcon>
+                  <props.rutas.icono />
+                </ListItemIcon>
+              )}
+              <ListItemText
+                primary={props.rutas.titulo}
+                inset={!props.rutas.icono}
+              />
+              {isExpandable && !open && <IconExpandMore />}
+              {isExpandable && open && <IconExpandLess />}
+            </ListItem>
+          </Link>
+        ) : (
+          <ListItem button onClick={handleClick}>
             {!!props.rutas.icono && (
               <ListItemIcon>
                 <props.rutas.icono />
@@ -39,21 +55,9 @@ function MenuItem(props: IMenuItemProps) {
             {isExpandable && !open && <IconExpandMore />}
             {isExpandable && open && <IconExpandLess />}
           </ListItem>
-        </Link>
+        )
       ) : (
-        <ListItem button onClick={handleClick}>
-          {!!props.rutas.icono && (
-            <ListItemIcon>
-              <props.rutas.icono />
-            </ListItemIcon>
-          )}
-          <ListItemText
-            primary={props.rutas.titulo}
-            inset={!props.rutas.icono}
-          />
-          {isExpandable && !open && <IconExpandMore />}
-          {isExpandable && open && <IconExpandLess />}
-        </ListItem>
+        <></>
       )}
 
       {isExpandable ? (

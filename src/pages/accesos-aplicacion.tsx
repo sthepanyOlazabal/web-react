@@ -17,16 +17,18 @@ import Remove from "@material-ui/icons/Remove";
 import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
+import ErrorOutlineOutlinedIcon from "@material-ui/icons/ErrorOutlineOutlined";
+import AlertDialog from "../components/modal";
 
 interface Row {
   id: string;
   nombres: string;
-  apellidos: string;
   codigo: string;
   fechaNacimiento: Date;
   correoElectronico: string;
   facebook: string;
   curso: string;
+  registroApp: boolean;
   activo: boolean;
 }
 
@@ -36,6 +38,9 @@ interface TableState {
 }
 
 function AccesosAplicacion() {
+  const [dialog, setDialog] = useState(false);
+  const [titleDialog, setTitleDialog] = useState("");
+  const [messageDialog, setMessageDialog] = useState("");
   const [state, setState] = useState<TableState>({
     columns: [],
     data: [],
@@ -65,6 +70,21 @@ function AccesosAplicacion() {
     )),
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
   };
+  const checkValidValues = (obj: any) => {
+    let check = false;
+    if (
+      obj.nombres != "" &&
+      obj.codigo != "" &&
+      obj.fechaNacimiento != null &&
+      obj.correoElectronico != "" &&
+      obj.facebook != "" &&
+      obj.curso != undefined &&
+      obj.curso != "Ninguno"
+    ) {
+      check = true;
+    }
+    return check;
+  };
   let arraccesos: any = [];
   let cursosColumns: any = { Ninguno: "Ninguno" };
   let cursosArray: any = [];
@@ -90,7 +110,6 @@ function AccesosAplicacion() {
               arraccesos.push({
                 id: doc.id,
                 nombres: doc.data().nombres,
-                apellidos: doc.data().apellidos,
                 codigo: doc.data().codigo,
                 fechaNacimiento: new Date(
                   `${doc.data().fechaNacimiento.split("-")[1]}/${
@@ -102,6 +121,7 @@ function AccesosAplicacion() {
                 curso: !!cursosColumns[doc.data().curso]
                   ? doc.data().curso
                   : "Ninguno",
+                registroApp: doc.data().registroApp,
                 activo: doc.data().activo,
               });
             });
@@ -109,7 +129,6 @@ function AccesosAplicacion() {
             setState({
               columns: [
                 { title: "Nombres", field: "nombres" },
-                { title: "Apellidos", field: "apellidos" },
                 { title: "Código", field: "codigo" },
                 {
                   title: "Fecha de nacimiento",
@@ -123,13 +142,18 @@ function AccesosAplicacion() {
                   field: "curso",
                   lookup: cursosColumns,
                 },
+                {
+                  title: "Registro en la aplicación",
+                  field: "registroApp",
+                  type: "boolean",
+                },
                 { title: "Activo", field: "activo", type: "boolean" },
               ],
               data: arraccesos,
             });
           });
       });
-  }, []);
+  }, [dialog]);
 
   return (
     <div className="App">
@@ -180,55 +204,25 @@ function AccesosAplicacion() {
             }}
             editable={{
               onRowAdd: (newData) =>
-                new Promise((resolve) => {
+                new Promise((resolve, reject) => {
+                  setDialog(false);
                   setTimeout(() => {
-                    resolve();
-                    setState((prevState: TableState) => {
-                      const data = [...prevState.data];
-                      //Agregar nuevo registro a Firebase
-                      db.collection("Personas")
-                        .add({
-                          activo: !!newData.activo ? newData.activo : false,
-                          nombres: newData.nombres,
-                          apellidos: newData.apellidos,
-                          codigo: newData.codigo,
-                          fechaNacimiento: new Date(newData.fechaNacimiento)
-                            .toISOString()
-                            .split("T")[0],
-                          correoElectronico: newData.correoElectronico,
-                          facebook: newData.facebook,
-                          curso: newData.curso,
-                        })
-                        .then((res) => {
-                          newData.id = res.id;
-                          alert("Registro agregado correctamente");
-                        })
-                        .catch((err) => {
-                          alert(
-                            "Ocurrió un error, por favor contactar con el administrador del sistema.\nError: Table.AccesosApplicaciones.onRowAdd"
-                          );
-                          console.log(err);
-                        });
-                      data.push(newData);
-                      return { ...prevState, data };
-                    });
-                  }, 600);
-                }),
-              onRowUpdate: (newData, oldData) =>
-                new Promise((resolve) => {
-                  setTimeout(() => {
-                    resolve();
-                    if (oldData) {
+                    if (!checkValidValues(newData)) {
+                      setTitleDialog("Error");
+                      setMessageDialog("Todos los campos son obligatorios.");
+                      setDialog(true);
+                      reject();
+                    } else {
                       setState((prevState: TableState) => {
                         const data = [...prevState.data];
-                        data[data.indexOf(oldData)] = newData;
-                        //Actualizar registro en Firebase
+                        //Agregar nuevo registro a Firebase
                         db.collection("Personas")
-                          .doc(newData.id)
-                          .update({
-                            activo: newData.activo,
+                          .add({
+                            activo: !newData.activo ? false : newData.activo,
+                            registroApp: !newData.registroApp
+                              ? false
+                              : newData.registroApp,
                             nombres: newData.nombres,
-                            apellidos: newData.apellidos,
                             codigo: newData.codigo,
                             fechaNacimiento: new Date(newData.fechaNacimiento)
                               .toISOString()
@@ -238,21 +232,82 @@ function AccesosAplicacion() {
                             curso: newData.curso,
                           })
                           .then((res) => {
-                            alert("Registro actualizado correctamente.");
+                            newData.id = res.id;
+                            setTitleDialog("Mensaje del sistema");
+                            setMessageDialog(
+                              "Registro realizado correctamente."
+                            );
+                            setDialog(true);
                           })
                           .catch((err) => {
-                            alert(
-                              "Ocurrió un error, por favor contactar con el administrador del sistema.\nError: Table.AccesosApplicaciones.onRowUpdate"
+                            setTitleDialog("Mensaje del sistema");
+                            setMessageDialog(
+                              "Ocurrió un error, por favor contactar con el administrador del sistema.\nError: Table.AccesosApplicaciones.onRowAdd"
                             );
+                            setDialog(true);
                             console.log(err);
                           });
+                        data.push(newData);
                         return { ...prevState, data };
                       });
+                      resolve();
+                    }
+                  }, 600);
+                }),
+              onRowUpdate: (newData, oldData) =>
+                new Promise((resolve, reject) => {
+                  setDialog(false);
+                  setTimeout(() => {
+                    if (!checkValidValues(newData)) {
+                      setTitleDialog("Error");
+                      setMessageDialog("Todos los campos son obligatorios.");
+                      setDialog(true);
+                      reject();
+                    } else {
+                      if (oldData) {
+                        setState((prevState: TableState) => {
+                          const data = [...prevState.data];
+                          data[data.indexOf(oldData)] = newData;
+                          //Actualizar registro en Firebase
+                          db.collection("Personas")
+                            .doc(newData.id)
+                            .update({
+                              activo: newData.activo,
+                              registroApp: newData.registroApp,
+                              nombres: newData.nombres,
+                              codigo: newData.codigo,
+                              fechaNacimiento: new Date(newData.fechaNacimiento)
+                                .toISOString()
+                                .split("T")[0],
+                              correoElectronico: newData.correoElectronico,
+                              facebook: newData.facebook,
+                              curso: newData.curso,
+                            })
+                            .then((res) => {
+                              setTitleDialog("Mensaje del sistema");
+                              setMessageDialog(
+                                "Actualización realizada correctamente."
+                              );
+                              setDialog(true);
+                            })
+                            .catch((err) => {
+                              setTitleDialog("Mensaje del sistema");
+                              setMessageDialog(
+                                "Ocurrió un error, por favor contactar con el administrador del sistema.\nError: Table.AccesosApplicaciones.onRowUpdate"
+                              );
+                              setDialog(true);
+                              console.log(err);
+                            });
+                          return { ...prevState, data };
+                        });
+                      }
+                      resolve();
                     }
                   }, 600);
                 }),
               onRowDelete: (oldData) =>
                 new Promise((resolve) => {
+                  setDialog(false);
                   setTimeout(() => {
                     resolve();
                     setState((prevState: TableState) => {
@@ -262,12 +317,16 @@ function AccesosAplicacion() {
                         .doc(oldData.id)
                         .delete()
                         .then((res) => {
-                          alert("Registro eliminado correctamente.");
+                          setTitleDialog("Mensaje del sistema");
+                          setMessageDialog("Registro eliminado correctamente.");
+                          setDialog(true);
                         })
                         .catch((err) => {
-                          alert(
+                          setTitleDialog("Mensaje del sistema");
+                          setMessageDialog(
                             "Ocurrió un error, por favor contactar con el administrador del sistema.\nError: Table.AccesosApplicaciones.onRowDelete"
                           );
+                          setDialog(true);
                           console.log(err);
                         });
                       data.splice(data.indexOf(oldData), 1);
@@ -279,6 +338,13 @@ function AccesosAplicacion() {
           />
         </div>
       </div>
+      {dialog && (
+        <AlertDialog
+          estado={dialog}
+          titulo={titleDialog}
+          mensaje={messageDialog}
+        ></AlertDialog>
+      )}
     </div>
   );
 }

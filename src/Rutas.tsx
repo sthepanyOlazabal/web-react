@@ -1,8 +1,10 @@
 import * as React from "react";
 import { Switch, Route } from "react-router-dom";
+import NotFound from "./pages/not-found";
+import OPCIONES_MENU from "./data/rutas";
 
 interface IRutasProps {
-  rutas: any;
+  rutas?: any;
 }
 
 let count: number = 0;
@@ -26,14 +28,16 @@ export default class Rutas extends React.Component<IRutasProps> {
   public render() {
     if (count <= 2) count++;
     if (count == 1) {
-      getMenu(this.props.rutas);
+      getMenu(OPCIONES_MENU);
     }
-
     return (
       <Switch>
         {arrmenuitems.map((item: any, index: number) => {
-          return <Route path={item.ruta} component={item.pagina} key={index} />;
+          return (
+            <Route exact path={item.ruta} component={item.pagina} key={index} />
+          );
         })}
+        <Route component={NotFound} />
       </Switch>
     );
   }

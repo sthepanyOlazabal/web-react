@@ -24,7 +24,7 @@ import VideosReglamentoTransito from "../pages/videos/teoria-reglamento-transito
 const OPCIONES_MENU = [
   {
     titulo: "Inicio",
-    ruta: "/home",
+    ruta: "/",
     pagina: Home,
     icono: HomeOutlinedIcon,
   },

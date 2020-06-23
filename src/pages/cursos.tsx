@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from "react";
+import React, { useState, useEffect, forwardRef, useContext } from "react";
 import { db } from "../services/firebase";
 import MaterialTable, { Column, Icons } from "material-table";
 
@@ -17,6 +17,7 @@ import Remove from "@material-ui/icons/Remove";
 import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
+import { GlobalContext } from "../global/GlobalContext";
 
 interface Row {
   id: string;
@@ -83,6 +84,7 @@ function Cursos() {
         });
       });
   }, []);
+  const { usuario, setUsuario } = useContext(GlobalContext);
 
   return (
     <div className="App">
