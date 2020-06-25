@@ -12,9 +12,9 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .App-logo {
+    /* .App-logo {
         animation: App-logo-spin infinite 60s linear;
-    }
+    } */
 }
 
 .App-header {
@@ -29,6 +29,18 @@
     background-image: url("assets/images/grupo-driver-background.jpg");
     background-repeat: no-repeat;
     background-position: center;
+    background-size: cover;
+}
+
+.App-header-login {
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    font-size: calc(10px + 2vmin);
+    color: white;
+    background-image: url("assets/images/grupo-driver-login.png");
+    background-repeat: no-repeat;
+    background-position: bottom;
     background-size: cover;
 }
 
@@ -51,13 +63,22 @@
     color: #61dafb;
 }
 
+.grupo-driver-footer-login {
+    background: #000;
+    color: #fff;
+    height: 8vh;
+    min-height: auto;
+    max-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.grupo-driver-footer-login p {
+    margin: 0px;
+}
+
 @keyframes App-logo-spin {
-    /* from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    } */
     0% {
         transform: rotateY(0deg);
     }

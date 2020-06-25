@@ -2,6 +2,9 @@ import { useState } from "react";
 
 export function UseForm(initialState: any) {
   const [values, setValues] = useState(initialState);
+  const reset = () => {
+    setValues(initialState);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let target = e.target;
@@ -10,5 +13,5 @@ export function UseForm(initialState: any) {
       [target.name]: target.value,
     });
   };
-  return [values, handleInputChange];
+  return [values, handleInputChange, reset];
 }

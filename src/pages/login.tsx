@@ -1,25 +1,55 @@
 import React, { useState, useContext } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-import { Link, withRouter } from "react-router-dom";
+import { withRouter } from "react-router-dom";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
-import HomeIcon from "@material-ui/icons/Home";
+import PersonOutlineOutlinedIcon from "@material-ui/icons/PersonOutlineOutlined";
+import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Paper from "@material-ui/core/Paper";
-import LogoWhite from "../assets/images/logo-white.png";
-import { TextField } from "@material-ui/core";
+import { TextField, InputAdornment } from "@material-ui/core";
+
 import { UseForm } from "./../hooks/use-form";
 import { auth } from "../services/firebase";
 import { GlobalContext } from "../global/GlobalContext";
+import Logo from "../assets/images/logo.png";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       flexGrow: 1,
     },
+    bienvenido: {
+      paddingLeft: theme.spacing(4),
+      marginBottom: "0px",
+      fontSize: "5rem",
+    },
+    grupoDrive: {
+      paddingLeft: theme.spacing(4),
+      marginTop: "0px",
+      fontSize: "5rem",
+    },
+    imagen: {
+      margin: "20px 0px",
+    },
+    input: {
+      width: "100%",
+      margin: "10px 0px",
+    },
+    boton: {
+      width: "100%",
+      margin: "10px 0px",
+      backgroundColor: "#00dea6",
+      color: "#fff",
+      "&:hover": {
+        backgroundColor: "#00a67c",
+      },
+    },
     paper: {
-      padding: theme.spacing(2),
+      padding: theme.spacing(5),
       textAlign: "center",
+      backgroundColor: "transparent",
       color: theme.palette.text.secondary,
+      marginRight: theme.spacing(5),
     },
   })
 );
@@ -32,6 +62,15 @@ function Login(props: any) {
     password: "",
   });
   const { correo, password } = values;
+  const [errorEmail, setErrorEmail] = useState({
+    estado: false,
+    mensaje: "",
+  });
+  const [errorPassword, setErrorPassword] = useState({
+    estado: false,
+    mensaje: "",
+  });
+
   const autenticar = async () => {
     auth
       .signInWithEmailAndPassword(correo, password)
@@ -39,74 +78,156 @@ function Login(props: any) {
         res.user?.getIdTokenResult().then((tokenRes) => {
           let usuarioObj = {
             correo: tokenRes.claims.email,
-            token: tokenRes.token,
-            fechaExp: tokenRes.claims.exp,
             estaAutenticado: true,
           };
           setUsuario(usuarioObj);
 
           props.history.push("/");
-
-          localStorage.setItem("usuario", JSON.stringify(usuarioObj));
         });
       })
       .catch((err) => {
-        //si todo sale mal
         console.log(err);
+        setErrorEmail({
+          estado: false,
+          mensaje: "",
+        });
+        setErrorPassword({
+          estado: false,
+          mensaje: "",
+        });
+        if (err.code === "auth/invalid-email") {
+          setErrorEmail({
+            estado: true,
+            mensaje: "El correo ingresado tiene un formato inválido.",
+          });
+        }
+        if (err.code === "auth/user-not-found") {
+          setErrorEmail({
+            estado: true,
+            mensaje:
+              "El usuario no existe. El usuario puede haber sido eliminado.",
+          });
+        }
+        if (err.code === "auth/wrong-password") {
+          setErrorPassword({
+            estado: true,
+            mensaje:
+              "La contraseña no es válida o el usuario no tiene una contraseña.",
+          });
+        }
       });
   };
 
   return (
     <div className={classes.root}>
-      <Grid container>
-        <Grid item xs={8} sm={6}>
-          <div className="App-header-not-found"></div>
-        </Grid>
-        <Grid item xs={4} sm={6}>
-          <div>
-            <h1>Iniciar sesión</h1>
-            {JSON.stringify(values, null, 3)}
-            <br></br>
-            {JSON.stringify(usuario)}
+      <div className="App-header-login">
+        <Grid container justify="flex-end" alignItems="flex-start">
+          <Grid item xs={12} sm={8}>
+            <h1 className={classes.bienvenido}>¡Bienvenido </h1>
+            <h1 className={classes.grupoDrive}>a Grupo Driver!</h1>
+          </Grid>
+          <Grid item xs={12} sm={4}>
             <div>
-              <TextField
-                required
-                id="standard-required"
-                name="correo"
-                label="Correo"
-                value={values.correo}
-                onChange={handleInputChange}
-              />
-              <br></br>
-              <TextField
-                id="standard-password-input"
-                name="password"
-                label="Password"
-                type="password"
-                value={values.password}
-                onChange={handleInputChange}
-                autoComplete="current-password"
-              />
+              <Paper elevation={0} className={classes.paper}>
+                <div>
+                  <img src={Logo} className={classes.imagen} />
+                  <div>
+                    {errorEmail.estado ? (
+                      <TextField
+                        error
+                        className={classes.input}
+                        id="standard-required"
+                        name="correo"
+                        label="Correo"
+                        variant="outlined"
+                        value={values.correo}
+                        onChange={handleInputChange}
+                        helperText={errorEmail.mensaje}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonOutlineOutlinedIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    ) : (
+                      <TextField
+                        required
+                        className={classes.input}
+                        id="standard-required"
+                        name="correo"
+                        label="Correo"
+                        variant="outlined"
+                        value={values.correo}
+                        onChange={handleInputChange}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PersonOutlineOutlinedIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    )}
+                    {errorPassword.estado ? (
+                      <TextField
+                        error
+                        className={classes.input}
+                        id="standard-password-input"
+                        name="password"
+                        label="Contraseña"
+                        variant="outlined"
+                        type="password"
+                        value={values.password}
+                        onChange={handleInputChange}
+                        autoComplete="current-password"
+                        helperText={errorPassword.mensaje}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LockOutlinedIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    ) : (
+                      <TextField
+                        required
+                        className={classes.input}
+                        id="standard-password-input"
+                        name="password"
+                        label="Contraseña"
+                        variant="outlined"
+                        type="password"
+                        value={values.password}
+                        onChange={handleInputChange}
+                        autoComplete="current-password"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LockOutlinedIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    )}
+                  </div>
+                  <Button
+                    className={classes.boton}
+                    variant="contained"
+                    color="default"
+                    onClick={autenticar}
+                  >
+                    Ingresar
+                  </Button>
+                </div>
+              </Paper>
             </div>
-            <Button
-              variant="contained"
-              color="default"
-              startIcon={<HomeIcon />}
-              onClick={autenticar}
-            >
-              Ingresar
-            </Button>
-          </div>
+          </Grid>
         </Grid>
-      </Grid>
+      </div>
     </div>
-    // <div className="App">
-    //   <div className="App-header">
-    //     <div>
-    //       <img src={LogoWhite} className="App-logo" alt="logo"></img>
-    //     </div>
-    //   </div>
-    // </div>
   );
 }
 

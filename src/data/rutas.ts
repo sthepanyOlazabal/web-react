@@ -4,11 +4,13 @@ import EmojiObjectsOutlinedIcon from "@material-ui/icons/EmojiObjectsOutlined";
 import HomeOutlinedIcon from "@material-ui/icons/HomeOutlined";
 import LibraryMusicOutlinedIcon from "@material-ui/icons/LibraryMusicOutlined";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import NotificationsNoneOutlinedIcon from "@material-ui/icons/NotificationsNoneOutlined";
 import TheatersOutlinedIcon from "@material-ui/icons/TheatersOutlined";
 import AccesosAplicacion from "../pages/accesos-aplicacion";
 import Cursos from "../pages/cursos";
 import VideosDesarrolloCircuito from "../pages/desarrollo-circuito";
 import Home from "../pages/home";
+import Notificaciones from "../pages/notificaciones";
 import PodcastsCajaAutomatica from "../pages/Podcasts/caja-automatica";
 import PodcastsCajaMecanica from "../pages/Podcasts/caja-mecanica";
 import PodcastsCircuito from "../pages/Podcasts/circuito";
@@ -128,6 +130,12 @@ const OPCIONES_MENU = [
     ruta: "/desarrollo-circuito",
     pagina: VideosDesarrolloCircuito,
     icono: DriveEtaOutlinedIcon,
+  },
+  {
+    titulo: "Notificaciones",
+    ruta: "/notificaciones",
+    pagina: Notificaciones,
+    icono: NotificationsNoneOutlinedIcon,
   },
 ];
 

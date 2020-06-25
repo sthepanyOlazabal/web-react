@@ -17,8 +17,9 @@ import Remove from "@material-ui/icons/Remove";
 import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
-import ErrorOutlineOutlinedIcon from "@material-ui/icons/ErrorOutlineOutlined";
 import AlertDialog from "../components/modal";
+import ExportCSV from "../components/ExportCSV";
+import Grid from "@material-ui/core/Grid";
 
 interface Row {
   id: string;
@@ -31,7 +32,6 @@ interface Row {
   registroApp: boolean;
   activo: boolean;
 }
-
 interface TableState {
   columns: Array<Column<Row>>;
   data: Row[];
@@ -86,10 +86,13 @@ function AccesosAplicacion() {
     return check;
   };
   let arraccesos: any = [];
+  let arrayAccesosTabla: any = [];
+  const [arrayAccesos, setArrayAccesos] = useState([]);
   let cursosColumns: any = { Ninguno: "Ninguno" };
   let cursosArray: any = [];
 
-  useEffect(() => {
+  const obtenerAccesosFirebase = (callback: any) => {
+    arraccesos = [];
     //Obtener Cursos
     db.collection("Cursos")
       .get()
@@ -124,41 +127,76 @@ function AccesosAplicacion() {
                 registroApp: doc.data().registroApp,
                 activo: doc.data().activo,
               });
+              //Completar array para tabla a Excel
+              arrayAccesosTabla.push({
+                Nombres: doc.data().nombres,
+                Código: doc.data().codigo,
+                "Fecha de nacimiento": `${
+                  doc.data().fechaNacimiento.split("-")[1]
+                }/${doc.data().fechaNacimiento.split("-")[2]}/${
+                  doc.data().fechaNacimiento.split("-")[0]
+                }`,
+                "Correo electrónico": doc.data().correoElectronico,
+                Facebook: doc.data().facebook,
+                Curso: !!cursosColumns[doc.data().curso]
+                  ? cursosColumns[doc.data().curso]
+                  : "Ninguno",
+                "Registrado en la aplicación": doc.data().registroApp,
+                Activo: doc.data().activo,
+              });
             });
-            //Completar tabla
-            setState({
-              columns: [
-                { title: "Nombres", field: "nombres" },
-                { title: "Código", field: "codigo" },
-                {
-                  title: "Fecha de nacimiento",
-                  field: "fechaNacimiento",
-                  type: "date",
-                },
-                { title: "Correo electrónico", field: "correoElectronico" },
-                { title: "Facebook", field: "facebook" },
-                {
-                  title: "Curso",
-                  field: "curso",
-                  lookup: cursosColumns,
-                },
-                {
-                  title: "Registro en la aplicación",
-                  field: "registroApp",
-                  type: "boolean",
-                },
-                { title: "Activo", field: "activo", type: "boolean" },
-              ],
-              data: arraccesos,
-            });
+            setArrayAccesos(arrayAccesosTabla);
+            callback(arraccesos);
           });
       });
+  };
+
+  useEffect(() => {
+    obtenerAccesosFirebase((arraccesos: any) => {
+      //Completar tabla
+      setState({
+        columns: [
+          { title: "Nombres", field: "nombres" },
+          { title: "Código", field: "codigo" },
+          {
+            title: "Fecha de nacimiento",
+            field: "fechaNacimiento",
+            type: "date",
+          },
+          { title: "Correo electrónico", field: "correoElectronico" },
+          { title: "Facebook", field: "facebook" },
+          {
+            title: "Curso",
+            field: "curso",
+            lookup: cursosColumns,
+          },
+          {
+            title: "Registro en la aplicación",
+            field: "registroApp",
+            type: "boolean",
+          },
+          { title: "Activo", field: "activo", type: "boolean" },
+        ],
+        data: arraccesos,
+      });
+    });
   }, [dialog]);
 
   return (
     <div className="App">
       <div className="App-header">
         <div>
+          <Grid
+            container
+            direction="row"
+            justify="flex-end"
+            alignItems="center"
+          >
+            <ExportCSV
+              csvData={arrayAccesos}
+              fileName="GrupoDriver_AccesosAplicacion"
+            />
+          </Grid>
           <MaterialTable
             title="Accesos a la Aplicación"
             columns={state.columns}
